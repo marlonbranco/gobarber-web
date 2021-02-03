@@ -1,5 +1,6 @@
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { shade } from 'polished';
+import { Link } from 'react-router-dom';
 
 import signUpBackgroundImg from '../../assets/sign-up-background.png';
 
@@ -8,6 +9,26 @@ export const Container = styled.div`
 
   display: flex;
   align-items: stretch;
+`;
+
+const appearFromRight = keyframes`
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0px);
+  }
+`;
+
+export const AnimationContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  animation: ${appearFromRight} 1s;
 `;
 
 export const Content = styled.div`
@@ -45,23 +66,23 @@ export const Content = styled.div`
       }
     }
   }
+`;
 
-  > a {
-    color: #f4ede8;
-    display: block;
-    margin-top: 24px;
-    text-decoration: none;
-    transition: 0.2s;
-    display: flex;
-    align-items: center;
+export const StyledLink = styled(Link)`
+  color: #f4ede8;
+  display: block;
+  margin-top: 24px;
+  text-decoration: none;
+  transition: 0.2s;
+  display: flex;
+  align-items: center;
 
-    svg {
-      margin-right: 16px;
-    }
+  svg {
+    margin-right: 16px;
+  }
 
-    &:hover {
-      color: ${shade(0.2, '#ff9000')};
-    }
+  &:hover {
+    color: ${shade(0.2, '#ff9000')};
   }
 `;
 

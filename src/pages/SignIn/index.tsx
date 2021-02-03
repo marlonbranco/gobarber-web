@@ -1,42 +1,107 @@
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
 import { FiLogIn, FiMail, FiLock } from 'react-icons/fi';
+import { FormHandles } from '@unform/core';
+import { Form } from '@unform/web';
+import * as Yup from 'yup';
+import { useHistory } from 'react-router-dom';
 
+import getValidationErrors from '../../utils/getValidationErrors';
+import { useAuth } from '../../hooks/auth';
+import { useToast } from '../../hooks/toast';
 import logoImg from '../../assets/logo.svg';
 
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 
-import { Container, Content, Background } from './styles';
+import {
+  Container,
+  Content,
+  Background,
+  AnimationContainer,
+  StyledLink,
+} from './styles';
 
-const SignIn: React.FC = () => (
-  <Container>
-    <Content>
-      <img src={logoImg} alt="GoBarber" />
+interface SignInFormData {
+  email: string;
+  password: string;
+}
 
-      <form>
-        <h1>Faça seu login</h1>
+const SignIn: React.FC = () => {
+  const formRef = useRef<FormHandles>(null);
+  const { signIn } = useAuth();
+  const { addToast } = useToast();
+  const history = useHistory();
 
-        <Input name="email" icon={FiMail} placeholder="E-mail" />
+  const handleSubmit = useCallback(
+    async (data: SignInFormData) => {
+      try {
+        formRef.current?.setErrors({});
 
-        <Input
-          name="password"
-          icon={FiLock}
-          type="password"
-          placeholder="Senha"
-        />
+        const schema = Yup.object().shape({
+          email: Yup.string().email().required('E-mail obrigatório'),
+          password: Yup.string().required('Senha obrigatória'),
+        });
 
-        <Button type="submit">Entrar</Button>
+        await schema.validate(data, {
+          abortEarly: false,
+        });
 
-        <a href="forgot">Esqueci minha senha</a>
-      </form>
+        await signIn({
+          email: data.email,
+          password: data.password,
+        });
 
-      <a href="signup">
-        <FiLogIn />
-        Criar conta
-      </a>
-    </Content>
-    <Background />
-  </Container>
-);
+        history.push('/dashboard');
+      } catch (err) {
+        if (err instanceof Yup.ValidationError) {
+          const errors = getValidationErrors(err);
+
+          formRef.current?.setErrors(errors);
+
+          return;
+        }
+        addToast({
+          type: 'error',
+          title: 'Erro na autenticação',
+          description: 'Ocorreu um erro ao fazer login, cheque as credenciais',
+        });
+      }
+    },
+    [signIn, addToast],
+  );
+
+  return (
+    <Container>
+      <Content>
+        <AnimationContainer>
+          <img src={logoImg} alt="GoBarber" />
+
+          <Form ref={formRef} onSubmit={handleSubmit}>
+            <h1>Faça seu login</h1>
+
+            <Input name="email" icon={FiMail} placeholder="E-mail" />
+
+            <Input
+              name="password"
+              icon={FiLock}
+              type="password"
+              placeholder="Senha"
+            />
+
+            <Button type="submit">Entrar</Button>
+
+            <a href="forgot">Esqueci minha senha</a>
+          </Form>
+
+          <StyledLink to="/signup">
+            <FiLogIn />
+            Criar conta
+          </StyledLink>
+        </AnimationContainer>
+      </Content>
+      <Background />
+    </Container>
+  );
+};
 
 export default SignIn;
